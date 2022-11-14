@@ -32,10 +32,24 @@ def placeFood():
     canvas.move(food,food_x,food_y)
 
 def init_snake():
-    global head,body
-    body=canvas.create_rectangle(-100,-100,-60,-60,fill='grey')
+    global head,snake
     head=canvas.create_rectangle(-100,-100,-60,-60,fill='white')
     snake.append(head)
+
+
+def grow_snake():
+    global direction,snake
+    last_coords=canvas.coords(snake[len(snake)-1])
+    new_body=canvas.create_rectangle(0,0,40,40,fill='#FDF3F3')
+    if direction=='left':
+        canvas.coords(new_body,last_coords[0]+40,last_coords[1],last_coords[2]+40,last_coords[3])
+    elif direction=='right':
+        canvas.coords(new_body,last_coords[0]-40,last_coords[1],last_coords[2]-40,last_coords[3])
+    elif direction=='up':
+        canvas.coords(new_body,last_coords[0],last_coords[1]+40,last_coords[2],last_coords[3]+40)
+    elif direction=='down':
+        canvas.coords(new_body,last_coords[0],last_coords[1]-40,last_coords[2],last_coords[3]-40)
+    snake.append(new_body)
 
 def move_food():
     global food,food_x,food_y
@@ -56,17 +70,16 @@ def move_snake():
 
     head_coords=canvas.coords(snake[0])
     positions.append(head_coords)
-    print(positions)
-    if head_coords[2]>=550:
+    if head_coords[2]>550:
         canvas.coords(snake[0],0,head_coords[1],40,head_coords[3])
     elif head_coords[0]<=0:
         canvas.coords(snake[0],510,head_coords[1],550,head_coords[3])
     #head_coords=canvas.coords(snake[0])
-    elif head_coords[3]>=550:
+    elif head_coords[3]>550:
         canvas.coords(snake[0],head_coords[0],0,head_coords[2],40)
     elif head_coords[1]<=0:
         canvas.coords(snake[0],head_coords[0],510,head_coords[2],550)
-
+    
     if direction=='left':
         canvas.move(snake[0],-40,0)
     elif direction=='right':
@@ -82,10 +95,22 @@ def move_snake():
     positions.append(head_coords)  
     if overlapping(head_coords,food_coords):
         move_food()
+        grow_snake()
         score+=1
         canvas.itemconfigure(scoreText,text=f'Score: {score}')
 
-    window.after(1000,move_snake)
+    for i in range(1,len(snake)):
+        if overlapping(head_coords, canvas.coords(snake[i])):
+            game_over=True
+            canvas.create_text(width/2,height/2,fill='white',font=('Helvetica','50','bold'),text='Game Over!')
+
+    for i in range(1, len(snake)):
+        positions.append(canvas.coords(snake[i]))
+    for i in range(len(snake)-1):
+        canvas.coords(snake[i+1],positions[i][0],positions[i][1],positions[i][2],positions[i][3])
+    
+    if 'game_over' not in locals():
+        window.after(500,move_snake)
     
 
 
